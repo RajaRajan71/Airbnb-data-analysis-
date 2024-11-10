@@ -1,21 +1,23 @@
-#Airbnb data analysis
- Airbnb, a global community marketplace that offers unique accommodations and experiences around the world.
- Whether you're seeking a cozy apartment in the heart of a bustling city, a rustic cabin nestled in the mountains, or an exotic villa by the beach, Airbnb provides a platform where travelers can discover and book accommodations that suit their preferences and budget.
+##Airbnb data analysis
 
- #Approaches
- 1.Data Cleaning and Preparation
- 2.Geospatial Visualization
- 3.Price Analysis and Visualization
+ Airbnb, a global community marketplace that offers unique accommodations and experiences around the world.
+ Whether you're seeking a cozy apartment in the heart of a bustling city, a rustic cabin nestled in the mountains, or an exotic villa by the beach, Airbnb provides a 
+ platform where travelers can discover and book accommodations that suit their preferences and budget.
+
+ ##Approaches
+    1.Data Cleaning and Preparation
+    2.Geospatial Visualization
+    3.Price Analysis and Visualization
 
  #SKILLS NEED FOR THIS PROJECT
- Python scripting, Data Preprocessing, Visualization,
-EDA, Streamlit
+    Python scripting, Data Preprocessing, Visualization,
+     EDA, Streamlit
 
 #INSTALLATION NEED
- pip install mysql.connector
-  pip install pandas
-  pip install streamlit
-  pip install wordcloud
+     pip install mysql.connector
+      pip install pandas
+      pip install streamlit
+      pip install wordcloud
 
   #TECHNOLOGIES USED
     Json
