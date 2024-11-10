@@ -1,10 +1,10 @@
-# Airbnb data analysis
+# AIRBNB DATA ANALYSIS
 
  Airbnb, a global community marketplace that offers unique accommodations and experiences around the world.
  Whether you're seeking a cozy apartment in the heart of a bustling city, a rustic cabin nestled in the mountains, or an exotic villa by the beach, Airbnb provides a 
  platform where travelers can discover and book accommodations that suit their preferences and budget.
 
- ## Approaches
+ ## APPROACHES
     1.Data Cleaning and Preparation
     2.Geospatial Visualization
     3.Price Analysis and Visualization
