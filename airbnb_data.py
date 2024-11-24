@@ -1,8 +1,8 @@
-# Import Packages
-
 import streamlit as st
 from streamlit_option_menu import option_menu
+from PIL import Image
 import mysql.connector
+from sqlalchemy import create_engine
 import pandas as pd
 import plotly_express as px
 import plotly.graph_objects as go
@@ -10,6 +10,25 @@ import wordcloud
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 
+
+
+# Setting up page configuration
+
+st.set_page_config(page_title= "Airbnb Data Visualization | By Jafar Hussain",
+                
+                layout= "wide",
+                initial_sidebar_state= "expanded")
+
+
+# Creating option menu in the side bar
+with st.sidebar:
+    selected = option_menu("Menu", ["Home","Overview","Explore","INSIGHTS"], 
+                        icons=["house","graph-up-arrow","bar-chart-line"],
+                        menu_icon= "menu-button-wide",
+                        default_index=0,
+                        styles={"nav-link": {"font-size": "20px", "text-align": "left", "margin": "-2px", "--hover-color": "#FF5A5F"},
+                                "nav-link-selected": {"background-color": "#FF5A5F"}})
+    
 
 #ACCESSING CONNECT TO MYSQL
 
@@ -19,216 +38,247 @@ print(mydb)
 mycursor = mydb.cursor(buffered=True)
 mycursor.execute('SET GLOBAL max_allowed_packet=1073741824')  #this is add due to the packet size is increased
 
-#CSV FILES
 
-df1=pd.read_csv(r'C:\Users\ADMIN\Desktop\raraj\Common_data.csv')
+
+#CSV FILES
+df1=pd.read_csv(r'C:\Users\ADMIN\Desktop\raraj\Common_dataa.csv')
 df2=pd.read_csv(r'C:\Users\ADMIN\Desktop\raraj\Amenitiesfunction.csv')
 df3=pd.read_csv(r'C:\Users\ADMIN\Desktop\raraj\hostfunction')
 df4=pd.read_csv(r'C:\Users\ADMIN\Desktop\raraj\Addressfunction.csv')
 df5=pd.read_csv(r'C:\Users\ADMIN\Desktop\raraj\ReviewScorefunction.csv')
 df6=pd.read_csv(r'C:\Users\ADMIN\Desktop\raraj\Reviews_table.csv')
+df7=pd.read_csv(r'C:\Users\ADMIN\Desktop\raraj\AvailabilityDataa.csv')
 
 
-
-st.set_page_config(
-    page_title="Airbnb Data Analysis",
-    layout="wide",
-    initial_sidebar_state="expanded")
-
-with st.sidebar:
-    selected = option_menu(None,
-                        ["HOME","EXPLORE DATA","INSIGHTS"],
-                        icons=["house-door-fill","tools","card-text"],
-                        default_index=0,
-                        orientation="vertical",
-                        styles={"nav-link":{"font-size": "20px", "text-align": "center", "margin": "0px", "--hover-color": " #FF8080"},
-                        "icon": {"font-size": "30px"},
-                        "container" : {"max-width": "6000px"},
-                        "nav-link-selected": {"background-color": "#FF8080"}})
-    
-if selected == "HOME":
+# HOME PAGE
+if selected == "Home":
     st.markdown("<h1 style='text-align:center; color:indianred;'>AIRBNB ANALYSIS PROJECT</h1>", unsafe_allow_html=True)
 
     st.write("")
     st.write(":small_airplane: Welcome to Airbnb, a global community marketplace that offers unique accommodations and experiences around the world. Whether you're seeking a cozy apartment in the heart of a bustling city, a rustic cabin nestled in the mountains, or an exotic villa by the beach, Airbnb provides a platform where travelers can discover and book accommodations that suit their preferences and budget.")
-
-    st.write(':small_airplane: With millions of listings spanning over 191 countries, Airbnb connects people to unforgettable travel experiences while empowering hosts to share their spaces and passions with guests from every corner of the globe. Come explore, connect, and belong anywhere with Airbnb.')
-
-    st.subheader(':red[TECHNOLOGIES USED]')
-    st.write(":small_airplane: Technologies used in this project include Python scripting, Data Preprocessing, Visualization, EDA, Streamlit,MySQL")
-
-    st.write(":small_airplane: The project falls under the domain of Travel Industry, Property Management and Tourism.")
-
-    st.subheader(':red[PROBLEM STATEMENT]')
-
-    st.write(":small_airplane: This project aims to analyze Airbnb data to uncover valuable insights without focusing on specific technologies.You'll perform data cleaning, develop interactive geospatial visualizations, and create dynamic plots to understand pricing dynamics, availability patterns, and location-based trends.")
-    st.write(":small_airplane: Explore the insights and visualizations provided by the Streamlit!")
     
-                                                            #  DATA EXPLORATION   ###########
+
+    st.write(' With millions of listings spanning over 191 countries, Airbnb connects people to unforgettable travel experiences while empowering hosts to share their spaces and passions with guests from every corner of the globe. Come explore, connect, and belong anywhere with Airbnb.')
+    st.write("  Travel Industry, Property Management and Tourism")
     
-#    
-elif selected=="EXPLORE DATA":
-    st.markdown("<h1 style='text-align:center; color:indianred;'>AIRBNB DATA ANALYSIS</h1>", unsafe_allow_html=True)
+    st.write(" Python, Pandas, Plotly, Streamlit,MYSQL")
     
-    on = st.toggle(":red[**Availability Analysis**]")   
-    if on:  
-        sql = pd.read_sql("SELECT host_table.Host_Name ,availability_table.Availability_30,Availability_60 FROM availability_table JOIN host_table ON availability_table.Id = host_table.Id;", mydb)
-        fig1 = px.line(sql,
-                        x="Availability_30",
-                        y="Availability_60",
-                        title="Availability over 30 Days vs 60 Days",
-                        width=1300, height=700,
-                        labels={"Availability_30": "Availability 30 Days", "Availability_60": "Availability 60 Days"})
+    st.write(" To analyze Airbnb data using MYSQL, perform data cleaning and preparation, develop interactive visualizations, and create dynamic plots to gain insights into pricing variations, availability patterns, and location-based trends. ")
+    
+# OVERVIEW PAGE
+if selected == "Overview":
+    
+    tab1 = st.tabs(["APP MODULE"])
+    
+    # INSIGHTS TAB
+    # GETTING USER INPUTS
+    country = st.sidebar.multiselect('Select a Country', sorted(df4.Country.unique()), sorted(df4.Country.unique()))
+    property = st.sidebar.multiselect('Select Property_type', sorted(df1.Property_type.unique()), sorted(df1.Property_type.unique()))
+    room = st.sidebar.multiselect('Select Room_type', sorted(df1.Room_type.unique()), sorted(df1.Room_type.unique()))
+    price = st.slider('Select Price', df1.Price.min(), df1.Price.max(), (df1.Price.min(), df1.Price.max()))
+        
+    # CONVERTING THE USER INPUT INTO QUERY
+    query = f'Country in {country} & Room_type in {room} & Property_type in {property} & Price >= {price[0]} & Price <= {price[1]}'
+    
+    # CREATING COLUMNS
+    col1,col2 = st.columns(2,gap='medium')
+    
+    with col1:
+        # TOP 10 PROPERTY TYPES BAR CHART
+        sql_query1 =( """SELECT Property_type, SUM(Price) AS Total_Price 
+                FROM common_datas 
+                GROUP BY Property_type 
+                ORDER BY Total_Price DESC 
+                LIMIT 10;""" )
+        mycursor.execute(sql_query1)
+        myresult = mycursor.fetchall()
+        df = pd.DataFrame(myresult, columns=['Property_type', 'Total_Price'])
+        mydb.close()
+        st.write(df)
+        
+        fig1 = px.bar(df,
+                title='Top 10 Property Types',
+                x='Property_type',
+                y='Total_Price', 
+                orientation='v',
+                color='Property_type',
+                color_continuous_scale=px.colors.sequential.Viridis)
+        st.plotly_chart(fig1, use_container_width=True)
+        
+        
+        # TOP 10 ID HOSTS BAR CHART
+        mydb = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="",
+        database="airbnb"
+        )
+        mycursor = mydb.cursor()
+        
+        sql_query2= (""" SELECT HostId , Host_listing_count AS total_listing 
+                    FROM airbnb.host_table  
+                    GROUP BY HostId 
+                    ORDER BY total_listing DESC 
+                    LIMIT 10; """)
+        mycursor.execute(sql_query2)
+        myresult = mycursor.fetchall()
+        df2 = pd.DataFrame(myresult, columns=['HostId', 'Host_listing_count'])
+        st.write(df2)
+        
+        fig2 = px.bar(df2,
+                        title='Top 10 Hosts with Highest number of Listings',
+                        x='HostId',
+                        y='Host_listing_count',
+                        orientation='v',
+                        color='HostId',
+                        color_continuous_scale=px.colors.sequential.Agsunset)
+        fig2.update_layout(showlegend=False)
+        st.plotly_chart(fig2,use_container_width=True)
+        
+    with col2:
+        # TOTAL LISTINGS IN EACH ROOM TYPES PIE CHART
+        sql_query3=("SELECT Room_type, COUNT(*) AS total_listings FROM common_datas GROUP BY Room_type; ")
+        mycursor.execute(sql_query3)
+        myresult = mycursor.fetchall()
+        df3 = pd.DataFrame(myresult, columns=['Room_type', 'counts'])
+        
+        fig3 = px.pie(df3,
+                        title='Total Listings in each counts',
+                        names='Room_type',
+                        values='counts',
+                        color_discrete_sequence=px.colors.sequential.Rainbow
+                        )
+        fig3.update_traces(textposition='outside', textinfo='value+label')
+        st.plotly_chart(fig3,use_container_width=True)
+        st.write(df3)
+            
+        # TOTAL LISTINGS BY COUNTRY CHOROPLETH MAP
+        sql_query4=(("SELECT Country, COUNT(*) AS total_listings FROM address_table GROUP BY Country;"))
+        mycursor.execute(sql_query4)
+        myresult = mycursor.fetchall()
+        df4 = pd.DataFrame(myresult, columns=['Country','total_listings'])
+        
+        fig4 = px.choropleth(df4,
+                                title='Total Listings in each Country',
+                                locations='Country',
+                                locationmode='country names',
+                                color='total_listings',
+                                color_continuous_scale=px.colors.sequential.Plasma
+                            )
+        st.plotly_chart(fig4,use_container_width=True)
+        st.write(df4)
+# EXPLORE PAGE
+if selected == "Explore":
+    st.markdown("## Explore more about the Airbnb data")
+    
+    # GETTING USER INPUTS
+    country = st.sidebar.multiselect('Select a Country',sorted(df4.Country.unique()),sorted(df4.Country.unique()))
+    prop = st.sidebar.multiselect('Select Property_type',sorted(df1.Property_type.unique()),sorted(df1.Property_type.unique()))
+    room = st.sidebar.multiselect('Select Room_type',sorted(df1.Room_type.unique()),sorted(df1.Room_type.unique()))
+    price = st.slider('Select Price',df1.Price.min(),df1.Price.max(),(df1.Price.min(),df1.Price.max()))
+    
+    
+    # CONVERTING THE USER INPUT INTO QUERY
+    query2 = f'Country in {country} & Room_type in {room} & Property_type in {prop} & Price >= {price[0]} & Price <= {price[1]}'
+    
+    # HEADING 1
+    st.markdown("## Price Analysis")
+    
+    # CREATING COLUMNS
+    col1,col2 = st.columns(2,gap='medium')
+    
+    
+    with col1:
+        
+        # AVG PRICE BY ROOM TYPE BARCHART
+        sql_query5=("SELECT Room_type,AVG(price) AS avg_price FROM common_datas GROUP BY Room_type;")
+        mycursor.execute(sql_query5)
+        myresult = mycursor.fetchall()
+        df5 = pd.DataFrame(myresult, columns=['Room_type','Price'])
+        fig5 = px.bar(df5,
+                    x='Room_type',
+                    y='Price',
+                    color='Price',
+                    title='Avg Price in each Room type'
+                    )
+        st.plotly_chart(fig5,use_container_width=True)
+        st.write(df5)
+        
+        
+        # HEADING 2
+        st.markdown("## Property price Analysis")
+        sql_query6= ( " SELECT Property_type, AVG(Price) as avg_price FROM common_datas GROUP BY Property_type DESC LIMIT 20;")
+        mycursor.execute(sql_query6)
+        myresult = mycursor.fetchall()
+        df6= pd.DataFrame(myresult, columns=['Property_type','Price'])
+        
+        
+        st.write("Top 20 Property Types by Average Price")
+        st.write(df6)
+        fig6 = px.bar(
+        df6, 
+        x='Property_type', 
+        y='Price', 
+        title='Top 20 Property Types by Average Price"', 
+        labels={'Property_type': 'Property Type', 'Price': 'Average Price'},
+        color='Price',  
+        color_continuous_scale='Viridis'
+        )
+        # Display the bar chart in Streamlit
+        st.plotly_chart(fig6)
+        
+        with col2:
+            
+        
+            # AVG PRICE IN COUNTRIES SCATTERGEO
+            sql_query7= ('SELECT Country, AVG(Price) AS avg_price FROM common_datas GROUP BY Country ORDER BY avg_price DESC;')
+            mycursor.execute(sql_query7)
+            myresult = mycursor.fetchall()
+            df7= pd.DataFrame(myresult, columns=['Country','avg_price'])
+            
+            st.write(" Average price by countries")
+            
+            fig = px.choropleth(df7,
+                                title='average price in countries',
+                                locations='Country',
+                                locationmode='country names',
+                                color='avg_price',
+                                color_continuous_scale=px.colors.sequential.Plasma
+                            )
+            st.plotly_chart(fig,use_container_width=True)
+            
+            st.write(df7)
+            
+                    # BLANK SPACE
+            st.markdown("#   ")
+            st.markdown("#   ")
+            
+            # AVG AVAILABILITY IN COUNTRIES SCATTERGEO
+            
+            sql_query8=('SELECT Country,AVG(Availability_365) AS avg_availability FROM availability_table GROUP BY Country;')
+            mycursor.execute(sql_query8)
+            myresult = mycursor.fetchall()
+            df8= pd.DataFrame(myresult, columns=['Country','Availability_365'])
+            
+            
+            st.write(" Availability_365 by countries")
+            
+            fig8 = px.choropleth(df8,
+                                title='Availability_365 by countries',
+                                locations='Country',
+                                locationmode='country names',
+                                color='Availability_365',
+                                color_continuous_scale=px.colors.sequential.Turbo
+                            )
+            st.plotly_chart(fig8,use_container_width=True)
+            
+            st.write(df8)
+            
 
-        fig1.update_traces(mode='markers') 
-
-        fig1.update_layout(xaxis_title='Availability 30 Days', yaxis_title='Availability 60 Days')
-
-        st.plotly_chart(fig1)
-        
-        sql2 = pd.read_sql("SELECT common_datas.Name,availability_table.Availability_90,Availability_365 FROM availability_table JOIN common_datas ON availability_table.Id = common_datas.Id WHERE availability_table.Availability_365 < 100 GROUP BY Availability_365;", mydb)
-        
-        fig2 = px.scatter(sql2, x='Availability_90', y='Availability_365', title='Availability (90 Days) vs Availability (365 Days)',color_discrete_sequence=['brown'])
-        
-        st.plotly_chart(fig2)
-        
-    secondon = st.toggle(":red[**Price Analysis**]")
-    if secondon:
-        sql3 = pd.read_sql('SELECT Government_Area, Country FROM airbnb.address_table ORDER BY Street DESC LIMIT 10;', mydb)
-        
-        fig2 = px.pie(sql3, names='Government_Area', title='Top 10 Government Areas by Country',color_discrete_sequence=['pink'])
-        
-        fig2.update_traces(textposition='inside', textinfo='percent+label')
-        
-        fig2.update_layout(showlegend=True)
-        
-        st.plotly_chart(fig2)
-        
-        ###########################          Average Price by Property Type         ##############################
-        
-        avg_price_by_type = df1.groupby("Property_type")["Price"].mean()
-        
-        fig3 = px.line(
-            avg_price_by_type.reset_index(),
-            x="Property_type",
-            y="Price",
-            title="Average Price by Property Type in Airbnb Data",width=1300,height=700,
-            labels={"Property_type": "Property Type", "Price": "Average Price"},color_discrete_sequence=['purple'])
-        
-        fig3.update_traces(mode='markers+lines') 
-        
-        fig3.update_layout(xaxis_title='Property Type', yaxis_title='Average Price')
-        
-        st.plotly_chart(fig3)
-        
-        
-                                                        ### MAX CLEANING FEE DETAILS   ################
-                                                        
-                                                        
-        max_cleaning_fee = df1.groupby('Name').agg({'ExtraPeople': 'max', 'Guests': 'max', 'CleaningFee': 'max'}).max()
-        
-        fig4 = px.bar(x=max_cleaning_fee.index, y=max_cleaning_fee.values, labels={'x': 'Category', 'y': 'Maximum Value'}, title='Maximum Values by Category',color_discrete_sequence=['mediumaquamarine'])
-        
-        st.plotly_chart(fig4)                                               
-                                                        #### ACCOMODATION ############
-                                                        
-        grouped_data = df1.groupby('Accomodation').agg({'Name': 'first',  
-            'Description': 'first',  
-            'Minimum_night': 'min',  
-            'Maximum_night': 'max'}).reset_index()
-        fig5 = px.box(grouped_data, x='Accomodation', y=['Minimum_night', 'Maximum_night'],
-                hover_data=['Name', 'Description'],title='Minimum vs Maximum Value by Accomodation',color_discrete_sequence=['yellow'])
-        
-        st.plotly_chart(fig5)
-        
-        
-                                            ##########    HOST NAME DETAILS ##################
-                                            
-        lastgr = df3.groupby('Host_Name')['Host_verification'].nunique().head(10).reset_index()
-
-        chart = px.bar(lastgr, 
-            x='Host_Name', 
-            y='Host_verification', 
-            color='Host_verification', 
-            title='Average Host Verification for Top 10 Hosts',
-            labels={'Host_Name': 'Host Name', 'Host_verification': 'Host Verification'},
-            width=1300, 
-            height=700,
-            color_discrete_sequence=px.colors.qualitative.Pastel1)
-        chart.update_layout(xaxis_tickangle=-45)
-
-        st.plotly_chart(chart)    
-        
-                                                ######## HOST LOCATION ######################
-        
-        dfw=df3.groupby('Host_location')['Host_neighbourhood'].min().head(5)
-
-        fig = px.scatter(dfw.reset_index(), x='Host_location', y='Host_neighbourhood',
-                        color="Host_neighbourhood",title='Minimum Host Neighborhood by Host Location')
-        
-        fig.update_traces(mode='markers+lines',marker_color='green')
-
-        st.plotly_chart(fig)         
-        
-                                                    ###########   Geo visualisation #######################
-                                                    
-    one = st.toggle(":red[**Geo visualisation**]")
-    if one:
-        df_filtered = pd.read_sql("SELECT Longitude, Latitude, Market, Government_Area FROM airbnb.address_table WHERE Market ='New York' ORDER BY Government_Area DESC LIMIT 10;",mydb)
-        fig = px.scatter_mapbox(df_filtered, lat="Latitude", 
-            lon="Longitude", color="Government_Area",hover_name="Market", 
-            hover_data={"Government_Area": True, "Market": True},
-            color_discrete_sequence=['brown'],zoom=1,
-            width=1300,height=700)
-        
-        fig.update_layout(mapbox_style="carto-darkmatter",title="Listing Availability by Location")
-        st.plotly_chart(fig)
-
-            #----------------------------------------Reviews Details----------------------------------------#
-    reviews=st.toggle(":red[**Review Rating Analysis**]")
-    if reviews:
-        rev = df6.groupby('ReviewerName')['Comment'].count().reset_index()
-
-        figs = px.bar(rev, x='ReviewerName', y='Comment', hover_data=['Comment'],
-                    labels={'ReviewerName':'ReviewerName','Comment':'Comment'},
-                    title='Comment Counts by Reviewer',width=1200,height=600,color_discrete_sequence=['saddlebrown'])
-        
-        st.plotly_chart(figs)
-
-            #------------------------------#ReviewScores Details----------------------------------------#
-        grouped_df = df5.groupby(['ReviewScoreValue','ReviewScoreRating','ReviewScoreLocation']).size().reset_index()
-
-        grouped_df.columns = ['ReviewScoreValue','ReviewScoreRating', 'ReviewScoreLocation','Count']
-
-        violin_fig = px.violin(grouped_df, x='ReviewScoreRating', y='Count',
-            title='Violin Plot of Review Counts by Rating',color_discrete_sequence=['lawngreen'],
-            labels={'ReviewScoreRating': 'Review Score Rating', 'Count': 'Count'})
-        
-        st.plotly_chart(violin_fig)
-
-            #------------------------------#ReviewScores Details----------------------------------------#
-        new_df = df5.groupby(['ReviewScoreChecking', 'ReviewScoreAccuracy', 'ReviewScoreCleanliness']).median().reset_index()
-        fig = px.scatter_3d(new_df, 
-                            x='ReviewScoreChecking', 
-                            y='ReviewScoreAccuracy', 
-                            z='ReviewScoreCleanliness', 
-                            color='ReviewScoreChecking',
-                            size_max=10, 
-                            opacity=0.7)
-        
-        fig.update_layout(scene=dict(
-                            xaxis_title='Review Score Checking',
-                            yaxis_title='Review Score Accuracy',
-                            zaxis_title='Review Score Cleanliness'),
-                            width=800,
-                            height=700,
-                            title='3D Scatter Plot of Review Scores')
-        
-        
-        st.plotly_chart(fig)
-                                        ####### INSIGHTS #######################
+    
+                            ###################### INSIGHTS ###########################
                                                 
-elif selected=="INSIGHTS":
+elif selected=="Insights":
         st.write("<h1 style='color:deeppink;text-align:center;'>INSIGHTS</h1>", unsafe_allow_html=True)
         
         
@@ -369,7 +419,5 @@ elif selected=="INSIGHTS":
             plt.imshow(wordcloud, interpolation='bilinear')
             plt.title('Word Cloud of Amenities Across Government Areas')
             plt.axis('off')
-            
+            st.write(df9)
             st.pyplot(plt)
-
-
