@@ -14,7 +14,7 @@ from wordcloud import WordCloud
 
 # Setting up page configuration
 
-st.set_page_config(page_title= "Airbnb Data Visualization | By Jafar Hussain",
+st.set_page_config(page_title= "Airbnb Data Visualization |",
                 
                 layout= "wide",
                 initial_sidebar_state= "expanded")
